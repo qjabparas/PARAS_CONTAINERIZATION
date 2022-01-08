@@ -1,0 +1,13 @@
+---
+# tasks file for dockergroup
+
+- name: Check docker group is available
+  group:
+    name: docker
+    state: present
+
+- name: Add user to docker group
+  user:
+    name: "{{ docker_user }}"
+    groups: docker
+    append: yes

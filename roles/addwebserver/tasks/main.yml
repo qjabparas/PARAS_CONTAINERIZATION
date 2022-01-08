@@ -1,0 +1,38 @@
+---
+# tasks file for addwebserver
+
+- name: Create docker directory
+  file:
+    path: docker
+    state: directory
+
+- name: Copy from docker dir files
+  copy:
+    src: docker/web/
+    dest: docker/web/
+    
+- name: Build web server using Docker image
+  docker_image:
+    name: "{{ web_docker_img_n }}"
+    build:
+      path: "{{ web_dockerfile_path }}"
+      pull: no
+    state: present
+    source: build
+  register: web_docker_img
+  
+- name: Restart docker
+  service:
+    name: docker
+    state: restarted
+
+- name: Clear iptables routing filter
+  shell: iptables -F; iptables -X
+  when: web_docker_img.changed
+  
+- name: Run Web server container
+  docker_container:  
+    name: "{{ web_container_n }}"
+    image: "{{ web_docker_img_n }}:{{ web_docker_img_tag }}"
+    state: started
+    ports: "{{ web_ports }}"

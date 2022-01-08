@@ -1,0 +1,28 @@
+---
+# tasks file for installubuntupkg
+
+- name: Add apt key on Ubuntu
+  apt_key:
+    url: "{{ url }}"
+    state: present
+  when: url is defined
+
+- name: Add apt repository on Ubuntu)
+  apt_repository:
+    repo: "{{ repo }}"
+    filename: "{{ filename }}"
+    state: present
+  when: repo is defined and filename is defined
+
+- name: Install package on Ubuntu
+  apt:
+    name: "{{ package }}"
+    state: latest
+    update_cache: yes
+
+- name: Start and Enable Service on Ubuntu
+  service:
+    name: "{{ service }}"
+    state: started
+    enabled: yes
+  when: service is defined

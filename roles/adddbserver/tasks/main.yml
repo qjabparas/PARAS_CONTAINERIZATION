@@ -1,0 +1,37 @@
+---
+# tasks file for adddbserver
+
+- name: Create docker directory
+  file:
+    path: docker
+    state: directory
+
+- name: Copy from docker dir files
+  copy:
+    src: docker/db/
+    dest: docker/db/
+    
+- name: Build DB server Docker image from Dockerfile
+  docker_image:
+    name: "{{ db_docker_img_n }}"
+    build:
+      path: "{{ db_dockerfile_path }}"
+      pull: no
+    state: present
+    source: build
+  register: db_docker_img
+
+- name: Restart docker
+  service:
+    name: docker
+    state: restarted
+
+- name: Clear iptables routing filter
+  shell: iptables -F; iptables -X
+  when: db_docker_img.changed
+  
+- name: Run DB server container
+  docker_container:
+    name: "{{ db_container_n }}"
+    image: "{{ db_docker_img_n }}:{{ db_docker_img_tag }}"
+    published_ports: "{{ db_ports }}"
